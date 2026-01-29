@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechShop - Computer Online</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a1a;
+            color: white;
+        }
+
+        /* Navbar con gradiente viola-arancione */
+        .navbar {
+            background: linear-gradient(90deg, #8B00FF, #FF8C00) !important;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            padding: 20px 40px !important;
+        }
+
+        .navbar-brand {
+            font-size: 28px;
+            font-weight: bold;
+            color: white !important;
+        }
+
+        /* Icona carrello nella navbar */
+        .cart-icon {
+            position: absolute;
+            right: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 28px;
+            cursor: pointer;
+            color: white;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cart-icon:hover {
+            transform: translateY(-50%) scale(1.1);
+            opacity: 0.8;
+        }
+
+        .cart-count {
+            background-color: #FF8C00;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            font-weight: bold;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        /* Sidebar Carrello */
+        .cart-sidebar {
+            position: fixed;
+            right: -450px;
+            top: 0;
+            width: 450px;
+            height: 100vh;
+            background-color: #242424;
+            border-left: 2px solid #FF8C00;
+            box-shadow: -6px 0 12px rgba(0, 0, 0, 0.4);
+            overflow-y: auto;
+            transition: right 0.3s ease;
+            z-index: 9998;
+            padding: 20px;
+        }
+
+        .cart-sidebar.open {
+            right: 0;
+        }
+
+        .cart-sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #FF8C00;
+        }
+
+        .cart-sidebar-header h2 {
+            margin: 0;
+            color: #FF8C00;
+            font-size: 24px;
+            text-align: left;
+        }
+
+        .close-cart-btn {
+            background: none;
+            border: none;
+            color: #FF8C00;
+            font-size: 28px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .close-cart-btn:hover {
+            transform: scale(1.2);
+        }
+
+        /* Overlay escuro quando o carrinho está aberto */
+        .cart-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9997;
+            display: none;
+        }
+
+        .cart-overlay.open {
+            display: block;
+        }
+
+        .cart-sidebar-content {
+            margin-bottom: 20px;
+        }
+
+        .cart-sidebar .cart-empty {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .cart-sidebar-totals {
+            position: sticky;
+            bottom: 0;
+            background-color: #242424;
+            padding: 20px;
+            border-top: 2px solid #FF8C00;
+            border-left: 2px solid #FF8C00;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .cart-total-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #FF8C00;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .cart-total-item span:last-child {
+            color: #FF8C00;
+            font-size: 18px;
+        }
+
+        .cart-iva-item {
+            color: #28a745 !important;
+        }
+
+        .cart-iva-item span {
+            color: #28a745 !important;
+        }
+
+        .cart-base-item {
+            color: white !important;
+        }
+
+        .cart-base-item span {
+            color: white !important;
+        }
+        .container-main {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* Titolo sezione */
+        h2 {
+            color: #FF8C00;
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 32px;
+        }
+
+        /* Griglia di card */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        /* Card in grigio scuro */
+        .card {
+            background-color: #2b2b2b;
+            border: 1px solid #2b2b2b;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+            color: white;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            border-color: #FF8C00;
+        }
+
+        .card h3 {
+            color: #FF8C00;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .card p {
+            color: #b0b0b0;
+            line-height: 1.6;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .card-price {
+            color: #FF8C00;
+            font-size: 20px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        .btn-custom {
+            background: linear-gradient(90deg, #8B00FF, #FF8C00);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-custom:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Sezione componenti */
+        .components-section {
+            margin-top: 60px;
+        }
+
+        .component-category {
+            margin-bottom: 40px;
+        }
+
+        .component-category h3 {
+            color: #FF8C00;
+            margin-bottom: 20px;
+            font-size: 22px;
+            border-bottom: 2px solid #FF8C00;
+            padding-bottom: 10px;
+        }
+
+        /* Stile per header categoria collassabile */
+        .category-header {
+            background: linear-gradient(90deg, #2b2b2b, #3a2a4a);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            border: 2px solid #505050;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .category-header:hover {
+            background: linear-gradient(90deg, #3a3a3a, #4a3a5a);
+            box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+        }
+
+        .category-toggle {
+            font-size: 20px;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .category-toggle.open {
+            transform: rotate(180deg);
+        }
+
+        /* Componenti nascosti di default */
+        .components-list {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out;
+            opacity: 0;
+        }
+
+        .components-list.open {
+            max-height: 2000px;
+            opacity: 1;
+        }
+
+        .component-item {
+            background-color: #2b2b2b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid #404040;
+        }
+
+        .component-item:hover {
+            border-color: #FF8C00;
+            background-color: #333333;
+        }
+
+        .component-item.selected {
+            border-color: #8B00FF;
+            background-color: #3a2a4a;
+        }
+
+        .component-info {
+            flex: 1;
+        }
+
+        .component-name {
+            color: white;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .component-details {
+            color: #b0b0b0;
+            font-size: 12px;
+        }
+
+        .component-price {
+            color: #FF8C00;
+            font-weight: bold;
+            font-size: 16px;
+            min-width: 100px;
+            text-align: right;
+        }
+
+        /* Summary Card - Riepilogo PC assemblato */
+        .summary-card {
+            background: linear-gradient(135deg, #2b2b2b 0%, #3a2a4a 50%, #3a3a2a 100%);
+            border: 2px solid #FF8C00;
+            border-radius: 10px;
+            padding: 30px;
+            position: sticky;
+            top: 20px;
+            color: white;
+            box-shadow: 0 10px 25px rgba(255, 140, 0, 0.2);
+        }
+
+        .summary-card h3 {
+            color: #FF8C00;
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #404040;
+            font-size: 14px;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-component-name {
+            color: #b0b0b0;
+            word-break: break-word;
+        }
+
+        .summary-component-price {
+            color: #FF8C00;
+            font-weight: bold;
+            margin-left: 20px;
+        }
+
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            margin-top: 20px;
+            border-top: 2px solid #FF8C00;
+            font-size: 18px;
+            font-weight: bold;
+            color: #FF8C00;
+        }
+
+        .btn-buy-build {
+            width: 100%;
+            background: linear-gradient(90deg, #8B00FF, #FF8C00);
+            border: none;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .btn-buy-build:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+
+        /* Sezione PC prefatti */
+        .prebuilt-section-header {
+            background: linear-gradient(90deg, #2b2b2b, #3a2a4a);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            transition: all 0.5s ease-in-out;
+            border: 2px solid #505050;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .prebuilt-section-header:hover {
+            background: linear-gradient(90deg, #3a3a3a, #4a3a5a);
+            box-shadow: 0 4px 12px rgba(80, 80, 80, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .prebuilt-toggle {
+            font-size: 20px;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .prebuilt-toggle.open {
+            transform: rotate(180deg);
+        }
+
+        .prebuilt-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+            max-height: 2000px;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out;
+            opacity: 1;
+        }
+
+        .prebuilt-grid.closed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .prebuilt-categories {
+            display: block;
+            max-height: 10000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .prebuilt-categories.closed {
+            max-height: 0;
+        }
+
+        .prebuilt-card {
+            background-color: #2b2b2b;
+            border: 1px solid #2b2b2b;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s;
+        }
+
+        .prebuilt-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            border-color: #8B00FF;
+        }
+
+        .prebuilt-card h4 {
+            color: #FF8C00;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .prebuilt-specs {
+            background-color: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            line-height: 1.8;
+            color: #b0b0b0;
+        }
+
+        .prebuilt-specs strong {
+            color: #FF8C00;
+        }
+
+        .flex-container {
+            display: flex;
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .flex-container > div:first-child {
+            flex: 1;
+        }
+
+        .flex-container > div:last-child {
+            flex: 0 0 350px;
+        }
+
+        /* Navbar sezione personalizzazione */
+        .customize-navbar {
+            background: linear-gradient(90deg, #8B00FF, #FF8C00);
+            padding: 20px 30px;
+            border-radius: 10px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 12px rgba(255, 140, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.5s ease-in-out;
+        }
+
+        .customize-navbar:hover {
+            box-shadow: 0 6px 16px rgba(255, 140, 0, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .customize-navbar h2 {
+            margin: 0;
+            color: white;
+            font-size: 28px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .customize-toggle {
+            font-size: 24px;
+            color: white;
+            font-weight: bold;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .customize-toggle.open {
+            transform: rotate(90deg);
+        }
+
+        .customize-section {
+            max-height: 5000px;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out;
+            opacity: 1;
+        }
+
+        .customize-section.closed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        /* Sezione Carrello */
+        .cart-section {
+            background-color: #242424;
+            border-radius: 10px;
+            padding: 30px;
+            margin-top: 60px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .cart-section h2 {
+            color: #FF8C00;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .cart-empty {
+            text-align: center;
+            color: #b0b0b0;
+            padding: 40px 20px;
+            font-size: 16px;
+        }
+
+        .cart-item {
+            background-color: #2b2b2b;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #404040;
+            transition: all 0.3s;
+        }
+
+        .cart-item:hover {
+            border-color: #FF8C00;
+            background-color: #333333;
+        }
+
+        .cart-item-info h4 {
+            color: #FF8C00;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .cart-item-components {
+            color: #b0b0b0;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .cart-item-price {
+            color: #FF8C00;
+            font-weight: bold;
+            font-size: 18px;
+            margin-right: 20px;
+        }
+
+        .btn-remove {
+            background-color: #cc3333;
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-remove:hover {
+            background-color: #ff5555;
+        }
+
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background-color: #2b2b2b;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 2px solid #FF8C00;
+        }
+
+        .cart-total-label {
+            font-size: 18px;
+            font-weight: bold;
+            color: #FF8C00;
+        }
+
+        .cart-total-price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FF8C00;
+        }
+
+        .btn-checkout {
+            width: 100%;
+            background: linear-gradient(90deg, #8B00FF, #FF8C00);
+            border: none;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .btn-checkout:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+
+        /* Notifiche Toast */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #FF8C00;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+            font-weight: bold;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+        }
+
+        .notification.success {
+            background-color: #28a745;
+        }
+
+        .notification.error {
+            background-color: #cc3333;
+        }
+
+        .notification.info {
+            background-color: #FF8C00;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .notification.remove {
+            animation: slideOut 0.3s ease forwards;
+        }
+
+        @media (max-width: 768px) {
+            .flex-container {
+                flex-direction: column;
+            }
+
+            .flex-container > div:last-child {
+                flex: 1;
+                position: static;
+            }
+
+            .summary-card {
+                position: static;
+                top: auto;
+            }
+
+            h2 {
+                font-size: 24px;
+            }
+
+            .cart-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .cart-item-price {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <span class="navbar-brand">🖥️ TechShop</span>
+            <div class="cart-icon" onclick="toggleCart()">
+                <span>🛒</span>
+                <span class="cart-count" id="cartCount">0</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Overlay do carrinho -->
+    <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+
+    <!-- Sidebar Carrello -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-sidebar-header">
+            <h2>🛒 Carrello</h2>
+            <button class="close-cart-btn" onclick="toggleCart()">✕</button>
+        </div>
+        <div class="cart-sidebar-content">
+            <div id="cartContent" class="cart-empty">
+                Il tuo carrello è vuoto. Seleziona un PC per iniziare!
+            </div>
+        </div>
+        <div class="cart-sidebar-totals">
+            <div class="cart-total-item cart-base-item">
+                <span>Prezzo base:</span>
+                <span id="cartSubTotal">€0.00</span>
+            </div>
+            <div class="cart-total-item cart-iva-item">
+                <span>IVA aggiunta (22%):</span>
+                <span id="cartIVA">€0.00</span>
+            </div>
+            <div class="cart-total-item" style="border-top: 1px solid #FF8C00; padding-top: 10px; font-size: 18px;">
+                <span>Prezzo finale:</span>
+                <span id="cartTotalVAT">€0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sezione PC Prefatti -->
+    <div class="container-main">
+        <div class="customize-navbar" onclick="togglePrebuiltMain()">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin: 0;">💻 Computer Prefatti</h2>
+                <span class="customize-toggle" id="toggle-main">▶</span>
+            </div>
+        </div>
+        
+        <div class="customize-section closed" id="prebuiltCategoriesContainer">
+            <div class="prebuilt-section-header" onclick="togglePrebuilt('gaming')" style="margin-left: 0; margin-top: 0;">
+                <span>🎮 Computer for Gaming</span>
+                <span class="prebuilt-toggle" id="toggle-gaming">▶</span>
+            </div>
+            <div class="prebuilt-grid closed" id="prebuiltSectionGaming">
+                <!-- I PC prefatti gaming verranno generati da JavaScript -->
+            </div>
+
+            <div class="prebuilt-section-header" onclick="togglePrebuilt('work')" style="margin-left: 0; margin-top: 20px;">
+                <span>💼 Computer for Work</span>
+                <span class="prebuilt-toggle" id="toggle-work">▶</span>
+            </div>
+            <div class="prebuilt-grid closed" id="prebuiltSectionWork">
+                <!-- I PC prefatti work verranno generati da JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Sezione Build Your Computer -->
+    <div class="container-main">
+        <div class="customize-navbar" onclick="toggleCustomizeSection()">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin: 0;">⚙️ Personalizza il tuo PC</h2>
+                <span class="customize-toggle" id="customize-toggle">▶</span>
+            </div>
+        </div>
+        
+        <div class="customize-section closed" id="customizeSection">
+            <div class="flex-container">
+                <!-- Sezione componenti -->
+                <div class="components-section" id="componentsSection">
+                    <!-- I componenti verranno generati da JavaScript -->
+                </div>
+
+                <!-- Summary Card -->
+                <div class="summary-card" id="summaryCard">
+                    <h3>Il tuo PC</h3>
+                    <div id="summaryContent">
+                        <div style="text-align: center; color: #b0b0b0; padding: 20px;">
+                            Seleziona i componenti per visualizzare il riepilogo
+                        </div>
+                    </div>
+                    <button class="btn-buy-build" onclick="buyPC()">Aggiungi al Carrello</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Database componenti
+        const components = {
+            processori: [
+                // INTEL
+                { id: 5, name: 'Intel Core i3-13100', details: '4 core, 3.4GHz', price: 149.99 },
+                { id: 1, name: 'Intel Core i5-13400', details: '10 core, 2.5GHz', price: 289.99 },
+                { id: 6, name: 'Intel Core i5-13600K', details: '14 core, 3.5GHz', price: 369.99 },
+                { id: 2, name: 'Intel Core i7-13700K', details: '16 core, 3.4GHz', price: 489.99 },
+                { id: 7, name: 'Intel Core i9-13900K', details: '24 core, 3.0GHz', price: 789.99 },
+                { id: 111, name: 'Intel Core Ultra 5', details: '14 core, 3.4GHz', price: 279.99 },
+                { id: 112, name: 'Intel Core Ultra 7', details: '16 core, 4.0GHz', price: 449.99 },
+                { id: 113, name: 'Intel Core Ultra 9', details: '24 core, 4.4GHz', price: 699.99 },
+                // AMD
+                { id: 3, name: 'AMD Ryzen 5 5600X', details: '6 core, 3.7GHz', price: 219.99 },
+                { id: 8, name: 'AMD Ryzen 5 7600', details: '6 core, 4.7GHz', price: 229.99 },
+                { id: 9, name: 'AMD Ryzen 7 7700X', details: '8 core, 4.5GHz', price: 379.99 },
+                { id: 10, name: 'AMD Ryzen 9 7900X', details: '12 core, 4.7GHz', price: 549.99 },
+                { id: 4, name: 'AMD Ryzen 9 7950X', details: '16 core, 4.5GHz', price: 699.99 }
+            ],
+            schede_video: [
+                // NVIDIA
+                { id: 11, name: 'NVIDIA RTX 4060', details: '8GB GDDR6', price: 289.99 },
+                { id: 15, name: 'NVIDIA RTX 4070', details: '12GB GDDR6', price: 599.99 },
+                { id: 16, name: 'NVIDIA RTX 4070 Ti', details: '12GB GDDR6', price: 799.99 },
+                { id: 12, name: 'NVIDIA RTX 4080', details: '16GB GDDR6', price: 1199.99 },
+                { id: 17, name: 'NVIDIA RTX 4090', details: '24GB GDDR6X', price: 1599.99 },
+                // AMD
+                { id: 13, name: 'AMD RX 7600', details: '16GB GDDR6', price: 249.99 },
+                { id: 18, name: 'AMD RX 7700 XT', details: '12GB GDDR6', price: 399.99 },
+                { id: 19, name: 'AMD RX 7800 XT', details: '16GB GDDR6', price: 499.99 },
+                { id: 14, name: 'AMD RX 7900 XT', details: '24GB GDDR6', price: 899.99 },
+                // INTEL
+                { id: 20, name: 'Intel Arc A770', details: '8GB GDDR6', price: 329.99 }
+            ],
+            ram: [
+                // CORSAIR
+                { id: 21, name: 'Corsair Vengeance LPX', details: '16GB DDR5 6000MHz', price: 251.99 },
+                { id: 25, name: 'Corsair Vengeance RGB Pro', details: '32GB DDR5 6000MHz', price: 398.99 },
+                // G.SKILL
+                { id: 22, name: 'G.Skill Trident Z5', details: '32GB DDR5 6400MHz', price: 419.99 },
+                { id: 26, name: 'G.Skill Flare X5', details: '48GB DDR5 6000MHz', price: 587.99 },
+                // KINGSTON
+                { id: 23, name: 'Kingston Fury Beast', details: '16GB DDR4 3200MHz', price: 125.99 },
+                { id: 27, name: 'Kingston Fury Beast RGB', details: '32GB DDR5 5600MHz', price: 356.99 },
+                // CRUCIAL
+                { id: 24, name: 'Crucial Ballistix', details: '32GB DDR4 3600MHz', price: 272.99 },
+                // PATRIOT
+                { id: 28, name: 'Patriot Viper Elite', details: '32GB DDR5 5600MHz', price: 314.99 },
+                // TEAMGROUP
+                { id: 29, name: 'TeamGroup T-Force', details: '32GB DDR5 6400MHz', price: 377.99 },
+                // ADATA
+                { id: 30, name: 'ADATA XPG LIAN', details: '64GB DDR5 6400MHz', price: 734.99 }
+            ],
+            ssd: [
+                // SAMSUNG
+                { id: 31, name: 'Samsung 980 Pro', details: '1TB NVMe', price: 129.99 },
+                { id: 35, name: 'Samsung 870 EVO', details: '1TB SSD SATA', price: 99.99 },
+                // WESTERN DIGITAL
+                { id: 32, name: 'WD Black SN850X', details: '2TB NVMe', price: 229.99 },
+                { id: 36, name: 'WD Blue 3D', details: '2TB SSD SATA', price: 149.99 },
+                // KINGSTON
+                { id: 33, name: 'Kingston A2000', details: '1TB NVMe', price: 89.99 },
+                { id: 39, name: 'Kingston Fury Beast', details: '1TB NVMe', price: 109.99 },
+                // CRUCIAL
+                { id: 34, name: 'Crucial P5 Plus', details: '2TB NVMe', price: 179.99 },
+                { id: 40, name: 'Crucial P2', details: '2TB NVMe', price: 159.99 },
+                // SK HYNIX
+                { id: 37, name: 'SK Hynix Platinum', details: '1TB NVMe', price: 119.99 },
+                // SABRENT
+                { id: 38, name: 'Sabrent Rocket', details: '2TB NVMe', price: 189.99 }
+            ],
+            alimentatore: [
+                // CORSAIR
+                { id: 41, name: 'Corsair RM850x', details: '850W 80+ Gold', price: 149.99 },
+                { id: 45, name: 'Corsair RM1000x', details: '1000W 80+ Gold', price: 199.99 },
+                { id: 49, name: 'Corsair SF750', details: '750W 80+ Platinum', price: 189.99 },
+                // EVGA
+                { id: 42, name: 'EVGA SuperNOVA 850 GA', details: '850W 80+ Gold', price: 129.99 },
+                // SEASONIC
+                { id: 43, name: 'Seasonic Focus GX-650', details: '650W 80+ Gold', price: 99.99 },
+                // BEQUIET
+                { id: 44, name: 'BeQuiet Pure Power 1000W', details: '1000W 80+ Gold', price: 179.99 },
+                // THERMALTAKE
+                { id: 46, name: 'Thermaltake Toughpower GF1', details: '750W 80+ Gold', price: 119.99 },
+                // ASUS
+                { id: 47, name: 'ASUS TUF GAMING 850W', details: '850W 80+ Gold', price: 159.99 },
+                // MSI
+                { id: 48, name: 'MSI MAG A750GL', details: '750W 80+ Gold', price: 139.99 },
+                // GIGABYTE
+                { id: 50, name: 'Gigabyte P750GM', details: '750W 80+ Gold', price: 129.99 }
+            ],
+            case: [
+                // NZXT
+                { id: 51, name: 'NZXT H510 Flow', details: 'Mid Tower ATX', price: 109.99 },
+                { id: 55, name: 'NZXT H710', details: 'Full Tower ATX', price: 179.99 },
+                // CORSAIR
+                { id: 52, name: 'Corsair 4000D Airflow', details: 'Mid Tower ATX', price: 99.99 },
+                { id: 56, name: 'Corsair 5000T RGB', details: 'Full Tower ATX', price: 249.99 },
+                // LIAN LI
+                { id: 53, name: 'Lian Li LANCOOL 205', details: 'Mid Tower ATX', price: 79.99 },
+                { id: 59, name: 'Lian Li Lancool 216', details: 'Mid Tower ATX', price: 99.99 },
+                // PHANTEKS
+                { id: 54, name: 'Phanteks Eclipse P500A', details: 'Mid Tower ATX', price: 139.99 },
+                // THERMALTAKE
+                { id: 57, name: 'Thermaltake V250 TG', details: 'Mid Tower ATX', price: 89.99 },
+                // FRACTAL DESIGN
+                { id: 58, name: 'Fractal Design Core 1000', details: 'Micro ATX', price: 49.99 },
+                // COOLER MASTER
+                { id: 60, name: 'Cooler Master HAF 500', details: 'Mid Tower ATX', price: 129.99 }
+            ],
+            schede_madre: [
+                // INTEL
+                { id: 64, name: 'ASRock Z790 Pro RS', details: 'Intel LGA1700', price: 199.99 },
+                { id: 62, name: 'MSI MAG Z790 TOMAHAWK', details: 'Intel LGA1700', price: 279.99 },
+                { id: 65, name: 'ASUS TUF Gaming Z790-Plus', details: 'Intel LGA1700', price: 269.99 },
+                { id: 63, name: 'Gigabyte Z790 AORUS Master', details: 'Intel LGA1700', price: 349.99 },
+                { id: 61, name: 'ASUS ROG STRIX Z790-E', details: 'Intel LGA1700', price: 389.99 },
+                // AMD
+                { id: 69, name: 'ASRock B850M Pro RS', details: 'AMD AM5 Micro ATX', price: 189.99 },
+                { id: 70, name: 'MSI MAG B850 TOMAHAWK', details: 'AMD AM5', price: 239.99 },
+                { id: 66, name: 'MSI MPG B850E EDGE', details: 'AMD AM5', price: 259.99 },
+                { id: 68, name: 'Gigabyte B850 AORUS PRO', details: 'AMD AM5', price: 319.99 },
+                { id: 67, name: 'ASUS ROG STRIX B850-E', details: 'AMD AM5', price: 349.99 }
+            ],
+            raffreddamento: [
+                // AIR COOLER
+                { id: 79, name: 'Thermalright Peerless Assassin', details: 'Air Cooler 120mm', price: 39.99 },
+                { id: 75, name: 'Cooler Master MasterAir MA410M', details: 'Air Cooler 120mm', price: 49.99 },
+                { id: 77, name: 'Phanteks TC90 DF RGB', details: 'Air Cooler 180mm', price: 64.99 },
+                { id: 72, name: 'BeQuiet Dark Rock Pro 4', details: 'Air Cooler 250mm', price: 89.99 },
+                { id: 71, name: 'Noctua NH-D15', details: 'Air Cooler 240mm', price: 99.99 },
+                // LIQUID COOLER
+                { id: 80, name: 'MSI MAG Core Liquid 240R', details: 'Liquid 240mm RGB', price: 119.99 },
+                { id: 76, name: 'Lian Li GALAHAD SL-AIO', details: 'Liquid 240mm RGB', price: 139.99 },
+                { id: 78, name: 'Corsair iCUE H100i Elite', details: 'Liquid 240mm RGB', price: 149.99 },
+                { id: 73, name: 'Corsair iCUE H150i Elite', details: 'Liquid 360mm RGB', price: 179.99 },
+                { id: 74, name: 'NZXT Kraken X73', details: 'Liquid 360mm RGB', price: 199.99 }
+            ]
+        };
+
+        // PC Prefatti organizzati per categoria
+        const prebuiltPCsGaming = [
+            {
+                name: 'Budget Gaming',
+                specs: ['Intel Core i5-13400\n', 'RTX 4060 8GB\n', 'RAM 16GB DDR5\n', 'SSD 512GB NVMe\n', 'PSU 650W\n', 'Case ATX'],
+                price: 1299.99,
+                components: [1, 11, 21, 31, 43, 51]
+            },
+            {
+                name: 'Mid Gaming',
+                specs: ['Intel Core i5-13600K\n', 'RTX 4070 12GB\n', 'RAM 32GB DDR5\n', 'SSD 1TB NVMe\n', 'PSU 750W\n', 'Case ATX'],
+                price: 1899.99,
+                components: [6, 15, 22, 32, 46, 52]
+            },
+            {
+                name: 'High Gaming',
+                specs: ['Intel Core i7-13700K\n', 'RTX 4080 16GB\n', 'RAM 32GB DDR5\n', 'SSD 1TB NVMe\n', 'PSU 850W\n', 'Case ATX'],
+                price: 2699.99,
+                components: [2, 12, 22, 32, 41, 54]
+            },
+            {
+                name: 'Ultimate Gaming',
+                specs: ['Intel Core i9-13900K\n', 'RTX 4090 24GB\n', 'RAM 64GB DDR5\n', 'SSD 2TB NVMe\n', 'PSU 1000W\n', 'Full Tower'],
+                price: 4199.99,
+                components: [7, 17, 30, 32, 45, 55]
+            },
+            {
+                name: 'Competitive FPS',
+                specs: ['AMD Ryzen 7 7700X\n', 'RTX 4070 Ti 12GB\n', 'RAM 32GB DDR5\n', 'SSD 1TB NVMe\n', 'PSU 850W\n', 'Case ATX'],
+                price: 2399.99,
+                components: [9, 16, 22, 33, 47, 52]
+            }
+        ];
+
+        const prebuiltPCsWork = [
+            {
+                name: 'Office Productivity',
+                specs: ['Intel Core i3-13100\n', 'Intel iGPU\n', 'RAM 16GB DDR5\n', 'SSD 512GB NVMe\n', 'PSU 500W\n', 'Case Micro'],
+                price: 599.99,
+                components: [5, 21, 31, 43, 58]
+            },
+            {
+                name: 'Content Creator',
+                specs: ['AMD Ryzen 7 7700X\n', 'RTX 4070 12GB\n', 'RAM 48GB DDR5\n', 'SSD 2TB NVMe\n', 'PSU 850W\n', 'Case ATX'],
+                price: 2299.99,
+                components: [9, 15, 26, 32, 47, 52]
+            },
+            {
+                name: 'Video Editor Pro',
+                specs: ['Intel Core i9-13900K\n', 'RTX 4080 16GB\n', 'RAM 64GB DDR5\n', 'SSD 2TB NVMe\n', 'PSU 1000W\n', 'Full Tower'],
+                price: 3699.99,
+                components: [7, 12, 30, 32, 45, 55]
+            },
+            {
+                name: '3D Rendering',
+                specs: ['AMD Ryzen 9 7950X\n', 'RTX 4090 24GB\n', 'RAM 64GB DDR5\n', 'SSD 2TB NVMe\n', 'PSU 1000W\n', 'Full Tower'],
+                price: 4899.99,
+                components: [4, 17, 30, 32, 45, 56]
+            },
+            {
+                name: 'Development Machine',
+                specs: ['Intel Core i7-13700K\n', 'RTX 4070 12GB\n', 'RAM 32GB DDR5\n', 'SSD 1TB NVMe\n', 'PSU 850W\n', 'Case ATX'],
+                price: 1999.99,
+                components: [2, 15, 22, 32, 41, 52]
+            }
+        ];
+
+        let selectedComponents = {};
+        let cart = [];
+
+        // Funzione per mostrare notifiche
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.classList.add('remove');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        // Funzione per toggle del carrello
+        function toggleCart() {
+            const cartSidebar = document.getElementById('cartSidebar');
+            const cartOverlay = document.getElementById('cartOverlay');
+            cartSidebar.classList.toggle('open');
+            cartOverlay.classList.toggle('open');
+        }
+
+        // Aggiorna il conteggio del carrello
+        function updateCartCount() {
+            const cartCount = document.getElementById('cartCount');
+            cartCount.textContent = cart.length;
+        }
+
+        // Toggle sezione Personalizza il tuo PC
+        function toggleCustomizeSection() {
+            const section = document.getElementById('customizeSection');
+            const toggle = document.getElementById('customize-toggle');
+            
+            section.classList.toggle('closed');
+            if (section.classList.contains('closed')) {
+                toggle.textContent = '▶';
+            } else {
+                toggle.textContent = '▼';
+            }
+        }
+
+        // Toggle sezione PC Prefatti principale
+        function togglePrebuiltMain() {
+            const container = document.getElementById('prebuiltCategoriesContainer');
+            const toggle = document.getElementById('toggle-main');
+            
+            container.classList.toggle('closed');
+            if (container.classList.contains('closed')) {
+                toggle.textContent = '▶';
+            } else {
+                toggle.textContent = '▼';
+            }
+        }
+
+        // Toggle sezione PC Prefatti Gaming/Work
+        function togglePrebuilt(category) {
+            if (category === 'gaming') {
+                const prebuiltGrid = document.getElementById('prebuiltSectionGaming');
+                const toggle = document.getElementById('toggle-gaming');
+                
+                prebuiltGrid.classList.toggle('closed');
+                if (prebuiltGrid.classList.contains('closed')) {
+                    toggle.textContent = '▶';
+                } else {
+                    toggle.textContent = '▼';
+                }
+            } else if (category === 'work') {
+                const prebuiltGrid = document.getElementById('prebuiltSectionWork');
+                const toggle = document.getElementById('toggle-work');
+                
+                prebuiltGrid.classList.toggle('closed');
+                if (prebuiltGrid.classList.contains('closed')) {
+                    toggle.textContent = '▶';
+                } else {
+                    toggle.textContent = '▼';
+                }
+            }
+        }
+
+        // Inizializza PC prefatti
+        function initPrebuiltPCs() {
+            // Inizializza PC Gaming
+            const prebuiltSectionGaming = document.getElementById('prebuiltSectionGaming');
+            prebuiltPCsGaming.forEach((pc, index) => {
+                const card = document.createElement('div');
+                card.className = 'prebuilt-card';
+                const priceWithVAT = (pc.price * 1.22).toFixed(2);
+                card.innerHTML = `
+                    <h4>${pc.name}</h4>
+                    <div class="prebuilt-specs">${pc.specs.join('')}</div>
+                    <div style="color: #FF8C00; font-size: 18px; font-weight: bold; margin-bottom: 15px;">€${priceWithVAT} <span style="font-size: 12px; color: #b0b0b0;">(IVA 22% inclusa)</span></div>
+                    <button class="btn-custom" onclick="addPrebuiltToCart(${index}, '${pc.name}', ${priceWithVAT}, 'gaming')">Aggiungi al Carrello</button>
+                `;
+                prebuiltSectionGaming.appendChild(card);
+            });
+
+            // Inizializza PC Work
+            const prebuiltSectionWork = document.getElementById('prebuiltSectionWork');
+            prebuiltPCsWork.forEach((pc, index) => {
+                const card = document.createElement('div');
+                card.className = 'prebuilt-card';
+                const priceWithVAT = (pc.price * 1.22).toFixed(2);
+                card.innerHTML = `
+                    <h4>${pc.name}</h4>
+                    <div class="prebuilt-specs">${pc.specs.join('')}</div>
+                    <div style="color: #FF8C00; font-size: 18px; font-weight: bold; margin-bottom: 15px;">€${priceWithVAT} <span style="font-size: 12px; color: #b0b0b0;">(IVA 22% inclusa)</span></div>
+                    <button class="btn-custom" onclick="addPrebuiltToCart(${index}, '${pc.name}', ${priceWithVAT}, 'work')">Aggiungi al Carrello</button>
+                `;
+                prebuiltSectionWork.appendChild(card);
+            });
+        }
+
+        // Seleziona PC prefatto
+        function selectPrebuilt(componentIds) {
+            selectedComponents = {};
+            componentIds.forEach(id => {
+                for (let category in components) {
+                    const component = components[category].find(c => c.id === id);
+                    if (component) {
+                        selectedComponents[category] = component;
+                        break;
+                    }
+                }
+            });
+            updateUI();
+            updateSummary();
+        }
+
+        // Aggiungi PC prefatto al carrello
+        function addPrebuiltToCart(pcIndex, pcName, priceWithVAT, category) {
+            let pc;
+            if (category === 'gaming') {
+                pc = prebuiltPCsGaming[pcIndex];
+            } else if (category === 'work') {
+                pc = prebuiltPCsWork[pcIndex];
+            }
+            
+            const cartItem = {
+                id: Date.now(),
+                name: pcName,
+                components: {},
+                price: pc.price,
+                isPrebuilt: true
+            };
+
+            // Popola i componenti del PC prefatto
+            pc.components.forEach(id => {
+                for (let cat in components) {
+                    const component = components[cat].find(c => c.id === id);
+                    if (component) {
+                        cartItem.components[cat] = component;
+                        break;
+                    }
+                }
+            });
+
+            cart.push(cartItem);
+            updateCartDisplay();
+            updateCartCount();
+            showNotification(`${pcName} aggiunto al carrello con successo! ✓`, 'success');
+        }
+
+        // Inizializza componenti
+        function initComponents() {
+            const componentsSection = document.getElementById('componentsSection');
+            componentsSection.innerHTML = '';
+
+            const categoryNames = {
+                processori: '🔧 Processori',
+                schede_video: '🎮 Schede Video',
+                ram: '💾 RAM',
+                ssd: '💿 SSD',
+                alimentatore: '⚡ Alimentatore',
+                case: '📦 Case',
+                schede_madre: '🖥️ Schede Madre',
+                raffreddamento: '❄️ Raffreddamento CPU'
+            };
+
+            for (let category in components) {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'component-category';
+                
+                // Header della categoria (cliccabile)
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'category-header';
+                headerDiv.innerHTML = `
+                    <span>${categoryNames[category]}</span>
+                    <span class="category-toggle">▼</span>
+                `;
+                headerDiv.onclick = () => toggleCategory(category);
+                categoryDiv.appendChild(headerDiv);
+
+                // Lista dei componenti (nascosta di default)
+                const componentsList = document.createElement('div');
+                componentsList.className = 'components-list';
+                componentsList.id = `category-${category}`;
+
+                let html = '';
+                components[category].forEach(component => {
+                    const isSelected = selectedComponents[category]?.id === component.id;
+                    html += `
+                        <div class="component-item ${isSelected ? 'selected' : ''}" onclick="selectComponent('${category}', ${component.id})">
+                            <div class="component-info">
+                                <div class="component-name">${component.name}</div>
+                                <div class="component-details">${component.details}</div>
+                            </div>
+                            <div class="component-price">€${component.price.toFixed(2)}</div>
+                        </div>
+                    `;
+                });
+
+                componentsList.innerHTML = html;
+                categoryDiv.appendChild(componentsList);
+                componentsSection.appendChild(categoryDiv);
+            }
+        }
+
+        // Toggle categoria componenti
+        function toggleCategory(category) {
+            const componentsList = document.getElementById(`category-${category}`);
+            const categoryHeader = componentsList.parentElement.querySelector('.category-header');
+            const toggle = categoryHeader.querySelector('.category-toggle');
+            
+            componentsList.classList.toggle('open');
+            toggle.classList.toggle('open');
+        }
+
+        // Seleziona componente
+        function selectComponent(category, componentId) {
+            const component = components[category].find(c => c.id === componentId);
+            selectedComponents[category] = component;
+            updateUI();
+            updateSummary();
+        }
+
+        // Aggiorna UI
+        function updateUI() {
+            const allItems = document.querySelectorAll('.component-item');
+            allItems.forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            for (let category in selectedComponents) {
+                const component = selectedComponents[category];
+                const items = document.querySelectorAll('.component-item');
+                items.forEach(item => {
+                    if (item.textContent.includes(component.name)) {
+                        item.classList.add('selected');
+                    }
+                });
+            }
+        }
+
+        // Aggiorna summary card
+        function updateSummary() {
+            const summaryContent = document.getElementById('summaryContent');
+            let html = '';
+            let total = 0;
+
+            const categoryNames = {
+                processori: '🔧 Processore',
+                schede_video: '🎮 Scheda Video',
+                ram: '💾 RAM',
+                ssd: '💿 SSD',
+                alimentatore: '⚡ Alimentatore',
+                case: '📦 Case'
+            };
+
+            for (let category in selectedComponents) {
+                const component = selectedComponents[category];
+                html += `
+                    <div class="summary-item">
+                        <span class="summary-component-name">${categoryNames[category]}: ${component.name}</span>
+                        <span class="summary-component-price">€${component.price.toFixed(2)}</span>
+                    </div>
+                `;
+                total += component.price;
+            }
+
+            if (Object.keys(selectedComponents).length === 0) {
+                html = '<div style="text-align: center; color: #b0b0b0; padding: 20px;">Seleziona i componenti per visualizzare il riepilogo</div>';
+            } else {
+                html += `<div class="summary-total">
+                            <span>TOTALE</span>
+                            <span>€${total.toFixed(2)}</span>
+                        </div>`;
+            }
+
+            summaryContent.innerHTML = html;
+        }
+
+        // Acquista PC
+        function buyPC() {
+            if (Object.keys(selectedComponents).length === 0) {
+                showNotification('Seleziona almeno un componente!', 'error');
+                return;
+            }
+            
+            let pcName = 'PC Personalizzato #' + (cart.length + 1);
+            let total = 0;
+            let components = {};
+
+            for (let category in selectedComponents) {
+                const component = selectedComponents[category];
+                components[category] = component;
+                total += component.price;
+            }
+
+            const cartItem = {
+                id: Date.now(),
+                name: pcName,
+                components: components,
+                price: total
+            };
+
+            cart.push(cartItem);
+            updateCartDisplay();
+            updateCartCount();
+            showNotification(`PC aggiunto al carrello con successo! ✓`, 'success');
+        }
+
+        // Aggiorna il display del carrello
+        function updateCartDisplay() {
+            const cartContent = document.getElementById('cartContent');
+            const cartSubTotal = document.getElementById('cartSubTotal');
+            const cartIVA = document.getElementById('cartIVA');
+            const cartTotalVAT = document.getElementById('cartTotalVAT');
+            
+            let cartTotal = 0;
+
+            if (cart.length === 0) {
+                cartContent.innerHTML = '<div class="cart-empty">Il tuo carrello è vuoto. Seleziona un PC per iniziare!</div>';
+                cartSubTotal.textContent = '€0.00';
+                cartIVA.textContent = '€0.00';
+                cartTotalVAT.textContent = '€0.00';
+                return;
+            }
+
+            let html = '';
+
+            cart.forEach((item, index) => {
+                let componentsList = '';
+                for (let category in item.components) {
+                    const component = item.components[category];
+                    componentsList += `<div>• ${component.name}</div>`;
+                }
+
+                html += `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <h4>${item.name}</h4>
+                            <div class="cart-item-components">${componentsList}</div>
+                        </div>
+                        <div class="cart-item-price">€${item.price.toFixed(2)}</div>
+                        <button class="btn-remove" onclick="removeFromCart(${item.id})">Rimuovi</button>
+                    </div>
+                `;
+                cartTotal += item.price;
+            });
+
+            html += `
+                <div class="cart-total">
+                    <span class="cart-total-label">TOTALE CARRELLO:</span>
+                    <span class="cart-total-price">€${cartTotal.toFixed(2)}</span>
+                </div>
+                <button class="btn-checkout" onclick="checkout()">Procedi al Checkout</button>
+            `;
+
+            cartContent.innerHTML = html;
+
+            // Aggiorna i totali nel sidebar
+            const ivaAmount = (cartTotal * 0.22).toFixed(2);
+            const totalWithVAT = (cartTotal + parseFloat(ivaAmount)).toFixed(2);
+            cartSubTotal.textContent = '€' + cartTotal.toFixed(2);
+            cartIVA.textContent = '€' + ivaAmount;
+            cartTotalVAT.textContent = '€' + totalWithVAT;
+        }
+
+        // Rimuovi dal carrello
+        function removeFromCart(itemId) {
+            cart = cart.filter(item => item.id !== itemId);
+            updateCartDisplay();
+            updateCartCount();
+            showNotification('PC rimosso dal carrello', 'info');
+        }
+
+        // Checkout
+        function checkout() {
+            if (cart.length === 0) {
+                showNotification('Il carrello è vuoto!', 'error');
+                return;
+            }
+
+            let totalPrice = 0;
+            cart.forEach(item => {
+                totalPrice += item.price;
+            });
+
+            showNotification(`Ordine completato! ${cart.length} PC per €${totalPrice.toFixed(2)} - Grazie per l'acquisto! ✓`, 'success');
+            cart = [];
+            updateCartDisplay();
+            updateCartCount();
+        }
+
+        // Inizializza al caricamento
+        document.addEventListener('DOMContentLoaded', function() {
+            initPrebuiltPCs();
+            initComponents();
+        });
+    </script>
+</body>
+</html>
